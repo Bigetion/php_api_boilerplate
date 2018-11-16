@@ -4,9 +4,9 @@
 
 class Crawl
 {
+    private $html;
     private $tags;
     private $html_object;
-
     private $jsonq;
 
     private function element_to_object($element, $level)
@@ -125,6 +125,7 @@ class Crawl
         } else {
             $html = file_get_contents($url);
         }
+        $this->html = $html;
         $this->tags = [];
         libxml_use_internal_errors(true);
         $dom = new DOMDocument();
@@ -136,6 +137,11 @@ class Crawl
     public function set_tags($tags)
     {
         $this->tags = $tags;
+    }
+
+    public function get_html()
+    {
+        return $this->html;
     }
 
     public function get_tags()
@@ -173,5 +179,15 @@ class Crawl
         }
 
         return $result;
+    }
+
+    public function get_string_between($start, $end)
+    {
+        $r = explode($start, $this->html);
+        if (isset($r[1])) {
+            $r = explode($end, $r[1]);
+            return $r[0];
+        }
+        return '';
     }
 }
