@@ -1,0 +1,7 @@
+{
+  "name": "Web Crawler",
+  "description": "",
+  "require": {
+    "nahid/jsonq": "^5.2"
+  }
+}

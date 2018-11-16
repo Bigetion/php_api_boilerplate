@@ -1,0 +1,26 @@
+{
+  "url": "https://trends.google.com/trends/trendingsearches/daily?geo=ID",
+  "is_rendered": true,
+  "query": {
+    "columns": [
+      "title",
+      "href as link"
+    ],
+    "where": [
+      {
+        "condition": [
+          "level",
+          "endswith",
+          "_0_1_3"
+        ]
+      },
+      {
+        "condition": [
+          "tag",
+          "=",
+          "a"
+        ]
+      }
+    ]
+  }
+}

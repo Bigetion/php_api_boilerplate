@@ -1,0 +1,10 @@
+{
+  "index": {
+    "validation": []
+  },
+  "getData": {
+    "validation": {
+      "name": "required"
+    }
+  }
+}
