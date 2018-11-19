@@ -5,11 +5,27 @@ class WebScrap extends Controller
     public function googleTrends()
     {
         $this->crawl->set_url("https://trends.google.com/trends/trendingsearches/daily?geo=ID", true);
-        $result['data'] = $this->crawl->get_data(["title", "href as link"], [[
+        $google_trends = $this->crawl->get_data(["title", "href as link"], [[
+            "condition" => ["level", "endswith", "_0_2_0_1_1_3_1_1_2_1"],
+        ], [
+            "condition" => ["tag", "=", "a"],
+        ]]);
+        
+        $description = $this->crawl->get_data(["title as description", "href as link"], [[
             "condition" => ["level", "endswith", "_0_1_3"],
         ], [
             "condition" => ["tag", "=", "a"],
         ]]);
+
+        $result['data'] = array();
+        foreach($google_trends as $key => $row) {
+            $result['data'][] = array(
+                "title" => str_replace('Explore ', '', $row['title']),
+                "link" => $row['link'],
+                "description" => $description[$key]['description'],
+                "source_link" => $description[$key]['link']
+            );
+        }
 
         $this->render->json($result);
     }
