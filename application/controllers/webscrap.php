@@ -21,7 +21,7 @@ class WebScrap extends Controller
         foreach($google_trends as $key => $row) {
             $result['data'][] = array(
                 "title" => str_replace('Explore ', '', $row['title']),
-                "link" => $row['link'],
+                "link" => "https://trends.google.com".$row['link'],
                 "description" => $description[$key]['description'],
                 "source_link" => $description[$key]['link']
             );
