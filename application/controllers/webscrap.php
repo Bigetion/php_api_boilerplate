@@ -64,7 +64,7 @@ class WebScrap extends Controller
         ]]);
 
         foreach ($description as $key => $desc) {
-            $result['data'][$key]['description'] = $desc['innerHTML'];
+            $result['data'][$key]['description'] = preg_replace('/\xc2\xa0/', ' ', $desc['innerHTML']);
         }
 
         $pages = $this->crawl->get_data([], [[
