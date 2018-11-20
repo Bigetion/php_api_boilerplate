@@ -6,7 +6,7 @@ class WebScrap extends Controller
     {
         $this->crawl->set_url("https://trends.google.com/trends/trendingsearches/daily/rss?geo=ID");
         
-        $result['items'] = $this->crawl->get_data([], [[
+        $items = $this->crawl->get_data([], [[
             "condition" => ["tag", "=", "item"],
         ]]);
 
@@ -43,16 +43,16 @@ class WebScrap extends Controller
         ]]);
         
         
-        // $result['data'] = array();
-        // foreach($items as $key => $row) {
-        //     $result['data'][] = array(
-        //         "title" => $title[$key]['html'],
-        //         "link" => "https://trends.google.com/trends/explore?q=".$title[$key]['html']."&date=now%207-d&geo=ID",
-        //         "description" => $description[$key]['html'],
-        //         "source_link" => $source_link[$key]['html'],
-        //         "picture" => $picture[$key]['html'],
-        //     );
-        // }
+        $result['data'] = array();
+        foreach($items as $key => $row) {
+            $result['data'][] = array(
+                "title" => $title[$key]['html'],
+                "link" => "https://trends.google.com/trends/explore?q=".$title[$key]['html']."&date=now%207-d&geo=ID",
+                "description" => strip_tags($description[$key]['html']),
+                "source_link" => $source_link[$key]['html'],
+                "picture" => $picture[$key]['html'],
+            );
+        }
 
         $this->render->json($result);
     }
