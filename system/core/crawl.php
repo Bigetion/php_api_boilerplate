@@ -13,7 +13,8 @@ class Crawl
 
     private function element_to_object($element, $level)
     {
-        $obj = array("level" => $level);
+        $explode_level = explode("_", $level);
+        $obj = array("level" => $level, "depth" => count($explode_level));
         if (property_exists($element, 'tagName')) {
             $obj["tag"] = $element->tagName;
             foreach ($element->attributes as $attribute) {

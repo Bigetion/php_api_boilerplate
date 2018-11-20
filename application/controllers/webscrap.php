@@ -4,28 +4,55 @@ class WebScrap extends Controller
 {
     public function googleTrends()
     {
-        $this->crawl->set_url("https://trends.google.com/trends/trendingsearches/daily?geo=ID", true);
-        $google_trends = $this->crawl->get_data(["title", "href as link"], [[
-            "condition" => ["level", "endswith", "_0_2_0_1_1_3_1_1_2_1"],
-        ], [
-            "condition" => ["tag", "=", "a"],
-        ]]);
+        $this->crawl->set_url("https://trends.google.com/trends/trendingsearches/daily/rss?geo=ID");
         
-        $description = $this->crawl->get_data(["title as description", "href as link"], [[
-            "condition" => ["level", "endswith", "_0_1_3"],
-        ], [
-            "condition" => ["tag", "=", "a"],
+        $result['items'] = $this->crawl->get_data([], [[
+            "condition" => ["tag", "=", "item"],
         ]]);
 
-        $result['data'] = array();
-        foreach($google_trends as $key => $row) {
-            $result['data'][] = array(
-                "title" => str_replace('Explore ', '', $row['title']),
-                "link" => "https://trends.google.com".$row['link'],
-                "description" => $description[$key]['description'],
-                "source_link" => $description[$key]['link']
-            );
-        }
+        $title = $this->crawl->get_data([], [[
+            "condition" => ["depth", "=", 6],
+        ],[
+            "condition" => ["level", "startswith", "0_0_0_0_"],
+        ],[
+            "condition" => ["level", "endswith", "_0"],
+        ]]);
+
+        $picture = $this->crawl->get_data([], [[
+            "condition" => ["depth", "=", 6],
+        ],[
+            "condition" => ["level", "startswith", "0_0_0_0_"],
+        ],[
+            "condition" => ["level", "endswith", "_6"],
+        ]]);
+
+        $description = $this->crawl->get_data([], [[
+            "condition" => ["depth", "=", 7],
+        ],[
+            "condition" => ["level", "startswith", "0_0_0_0_"],
+        ],[
+            "condition" => ["level", "endswith", "_8_0"],
+        ]]);
+
+        $source_link = $this->crawl->get_data([], [[
+            "condition" => ["depth", "=", 7],
+        ],[
+            "condition" => ["level", "startswith", "0_0_0_0_"],
+        ],[
+            "condition" => ["level", "endswith", "_8_2"],
+        ]]);
+        
+        
+        // $result['data'] = array();
+        // foreach($items as $key => $row) {
+        //     $result['data'][] = array(
+        //         "title" => $title[$key]['html'],
+        //         "link" => "https://trends.google.com/trends/explore?q=".$title[$key]['html']."&date=now%207-d&geo=ID",
+        //         "description" => $description[$key]['html'],
+        //         "source_link" => $source_link[$key]['html'],
+        //         "picture" => $picture[$key]['html'],
+        //     );
+        // }
 
         $this->render->json($result);
     }
