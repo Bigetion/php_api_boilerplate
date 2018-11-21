@@ -90,8 +90,13 @@ class WebScrap extends Controller
             "condition" => ["tag", "=", "p"],
         ]]);
 
+        $info = $this->crawl->get_data([], [[
+            "condition" => ["class", "~", "col-md-12 well img-rounded"],
+        ]]);
+
         foreach ($description as $key => $desc) {
             $result['data'][$key]['description'] = preg_replace('/\xc2\xa0/', ' ', $desc['innerHTML']);
+            $result['data'][$key]['info'] = $info[$key]['innerHTML'];
         }
 
         $pages = $this->crawl->get_data([], [[
