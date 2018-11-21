@@ -4,55 +4,48 @@ class WebScrap extends Controller
 {
     public function googleTrends()
     {
-        $this->crawl->set_url("https://trends.google.com/trends/trendingsearches/daily/rss?geo=ID");
+        $this->crawl->set_document_type('xml')->set_url("https://trends.google.com/trends/trendingsearches/daily/rss?geo=ID");
 
-        $items = $this->crawl->get_data([], [[
+        $data['items'] = $this->crawl->get_data([], [[
             "condition" => ["tag", "=", "item"],
         ]]);
-
-        $title = $this->crawl->get_data([], [[
-            "condition" => ["depth", "=", 6],
-        ], [
-            "condition" => ["level", "startswith", "0_0_0_0_"],
-        ], [
-            "condition" => ["level", "endswith", "_0"],
-        ]]);
-
-        $picture = $this->crawl->get_data([], [[
-            "condition" => ["depth", "=", 6],
-        ], [
-            "condition" => ["level", "startswith", "0_0_0_0_"],
-        ], [
-            "condition" => ["level", "endswith", "_6"],
-        ]]);
-
-        $description = $this->crawl->get_data([], [[
-            "condition" => ["depth", "=", 7],
-        ], [
-            "condition" => ["level", "startswith", "0_0_0_0_"],
-        ], [
-            "condition" => ["level", "endswith", "_8_0"],
-        ]]);
-
-        $source_link = $this->crawl->get_data([], [[
-            "condition" => ["depth", "=", 7],
-        ], [
-            "condition" => ["level", "startswith", "0_0_0_0_"],
-        ], [
-            "condition" => ["level", "endswith", "_8_2"],
-        ]]);
-
         $result['data'] = array();
-        foreach ($items as $key => $row) {
+        foreach ($data['items'] as $key => $row) {
+            $link = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "link"],
+            ]]);
+            $title = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "title"],
+            ]]);
+            $thumbnail = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "ht:picture"],
+            ]]);
+            $date = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "pubDate"],
+            ]]);
+            $traffic = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "ht:approx_traffic"],
+            ]]);
+            $news_item = $this->jsonq->search($row["children"], [], [[
+                "condition" => ["tag", "=", "ht:news_item"],
+            ]]);
+            $news_item_description = $this->jsonq->search($news_item[0]["children"], [], [[
+                "condition" => ["tag", "=", "ht:news_item_snippet"],
+            ]]);
+            $news_item_url = $this->jsonq->search($news_item[0]["children"], [], [[
+                "condition" => ["tag", "=", "ht:news_item_url"],
+            ]]);
+            $tmp_date = explode(' ', $date[0]['value']);
             $result['data'][] = array(
-                "title" => $title[$key]['html'],
-                "link" => "https://trends.google.com/trends/explore?q=" . $title[$key]['html'] . "&date=now%207-d&geo=ID",
-                "description" => strip_tags($description[$key]['html']),
-                "source_link" => $source_link[$key]['html'],
-                "picture" => $picture[$key]['html'],
+                "link" => $link[0]['value'],
+                "title" => $title[0]['value'],
+                "thumbnail" => $thumbnail[0]['value'],
+                "date" => $tmp_date[1]." ".$tmp_date[2]." ".$tmp_date[3],
+                "traffic" => $traffic[0]['value'],
+                "description" => strip_tags($news_item_description[0]["html"]),
+                "source_link" => $news_item_url[0]["html"]
             );
         }
-
         $this->render->json($result);
     }
 
