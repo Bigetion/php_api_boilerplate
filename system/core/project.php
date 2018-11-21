@@ -178,6 +178,8 @@ class Project
     {
         if (defined('allowed_origin')) {
             $this->origin_authenticate(allowed_origin);
+        } else {
+            $this->origin_authenticate('-');
         }
         $controller = $this->controller;
         $method = $this->method;
