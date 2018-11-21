@@ -5,5 +5,6 @@ return array(
     'default_project' => 'page',
     'default_project_controller' => 'home',
     'default_project_method' => 'index',
+    'allowed_origin' => '*',
 )
 ?>

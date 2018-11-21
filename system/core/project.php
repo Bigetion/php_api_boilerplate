@@ -14,29 +14,21 @@ class Project
 
     public $jwt_payload = false;
 
-    public function origin_authenticate()
+    public function origin_authenticate($allowed_origin = array())
     {
-        $http_origin = $_SERVER['HTTP_ORIGIN'];
-        if (strpos(base_url, $http_origin) !== false) {
+        $headers = getallheaders();
 
-        } else {
-            if (defined('allowed_origin')) {
-                if (allowed_origin != '*') {
-                    if ($http_origin == allowed_origin) {} else {
-                        $http_origin_explode = explode('|', allowed_origin);
-                        if (count($http_origin_explode) > 1) {
-                            if (in_array($http_origin, $http_origin_explode)) {
-
-                            } else {
-                                show_error('Permission', 'Origin unauthorized');
-                            }
-                        } else {
-                            show_error('Permission', 'Origin unauthorized');
-                        }
+        if (array_key_exists("Origin", $headers)) {
+            if (is_string($allowed_origin)) {
+                if ($allowed_origin != "*") {
+                    if ($headers["Origin"] != $allowed_origin) {
+                        show_error('Permission', 'Origin unauthorized');
                     }
                 }
-            } else {
-                show_error('Permission', 'Origin unauthorized');
+            } else if (is_array($allowed_origin)) {
+                if (!in_array($headers["Origin"], $allowed_origin)) {
+                    show_error('Permission', 'Origin unauthorized');
+                }
             }
         }
     }
@@ -184,6 +176,9 @@ class Project
 
     public function _render()
     {
+        if (defined('allowed_origin')) {
+            $this->origin_authenticate(allowed_origin);
+        }
         $controller = $this->controller;
         $method = $this->method;
 
