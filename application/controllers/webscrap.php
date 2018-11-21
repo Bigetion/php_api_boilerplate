@@ -128,42 +128,28 @@ class WebScrap extends Controller
         $data['items'] = $this->crawl->get_data([], [[
             "condition" => ["tag", "=", "item"],
         ]]);
-
-        $data['link'] = $this->crawl->get_data(["html as value"], [[
-            "condition" => ["level", "startswith", "0_1_"],
-        ], [
-            "condition" => ["level", "endswith", "_1"],
-        ], [
-            "condition" => ["tag", "=", "link"],
-        ]]);
-
-        $data['title'] = $this->crawl->get_data(["innerHTML as value"], [[
-            "condition" => ["level", "startswith", "0_1_"],
-        ], [
-            "condition" => ["level", "endswith", "_5"],
-        ], [
-            "condition" => ["tag", "=", "title"],
-        ]]);
-
-        $data['thumbnail'] = $this->crawl->get_data(["url as value"], [[
-            "condition" => ["tag", "=", "enclosure"],
-        ]]);
-
-        $data['date'] = $this->crawl->get_data(["innerHTML as value"], [[
-            "condition" => ["tag", "=", "pubDate"],
-        ]]);
-
         $result['data'] = array();
         foreach ($data['items'] as $key => $row) {
-            $tmp_date = explode(' ', $data['date'][$key]['value']);
+            $link = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "link"],
+            ]]);
+            $title = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "title"],
+            ]]);
+            $thumbnail = $this->jsonq->search($row["children"], ["url as value"], [[
+                "condition" => ["tag", "=", "enclosure"],
+            ]]);
+            $date = $this->jsonq->search($row["children"], ["innerHTML as value"], [[
+                "condition" => ["tag", "=", "pubDate"],
+            ]]);
+            $tmp_date = explode(' ', $date[0]['value']);
             $result['data'][] = array(
-                "link" => explode('?', $data['link'][$key]['value'])[0],
-                "title" => $data['title'][$key]['value'],
-                "thumbnail" => $data['thumbnail'][$key]['value'],
+                "link" => explode('?', $link[0]['value'])[0],
+                "title" => $title[0]['value'],
+                "thumbnail" => $thumbnail[0]['value'],
                 "date" => $tmp_date[1]." ".$tmp_date[2]." ".$tmp_date[3],
             );
         }
-
         $this->render->json($result);
     }
 }
