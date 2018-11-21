@@ -31,3 +31,15 @@ if (!function_exists('remove_invisible_characters')) {
         return $str;
     }
 }
+
+if (!function_exists('get_string_between')) {
+    function get_string_between($str, $start, $end)
+    {
+        $r = explode($start, $str);
+        if (isset($r[1])) {
+            $r = explode($end, $r[1]);
+            return $r[0];
+        }
+        return '';
+    }
+}

@@ -10,6 +10,7 @@ class Crawl
     private $tags;
     private $html_object;
     private $jsonq;
+    private $type = 'html';
 
     private function element_to_object($element, $level)
     {
@@ -31,10 +32,19 @@ class Crawl
                 }
                 $i += 1;
             }
-            if($level != "0") $obj["innerHTML"] = $innerHTML;
+            if ($level != "0") {
+                $obj["innerHTML"] = $innerHTML;
+            }
+
         }
         $this->tags[] = $obj;
         return $obj;
+    }
+
+    public function set_document_type($type)
+    {
+        $this->type = $type;
+        return $this;
     }
 
     public function set_url($url, $rendered = false)
@@ -48,7 +58,11 @@ class Crawl
         $this->tags = [];
         libxml_use_internal_errors(true);
         $dom = new DOMDocument();
-        $dom->loadHTML($html);
+        if ($this->type == 'xml') {
+            $dom->loadXML($html);
+        } else {
+            $dom->loadHTML($html);
+        }
         libxml_use_internal_errors(false);
         $this->html_object = $this->element_to_object($dom->documentElement, "0");
     }
