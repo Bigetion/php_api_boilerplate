@@ -40,10 +40,10 @@ class WebScrap extends Controller
                 "link" => $link[0]['value'],
                 "title" => $title[0]['value'],
                 "thumbnail" => $thumbnail[0]['value'],
-                "date" => $tmp_date[1]." ".$tmp_date[2]." ".$tmp_date[3],
+                "date" => $tmp_date[1] . " " . $tmp_date[2] . " " . $tmp_date[3],
                 "traffic" => $traffic[0]['value'],
                 "description" => strip_tags($news_item_description[0]["html"]),
-                "source_link" => $news_item_url[0]["html"]
+                "source_link" => $news_item_url[0]["html"],
             );
         }
         $this->render->json($result);
@@ -140,9 +140,37 @@ class WebScrap extends Controller
                 "link" => explode('?', $link[0]['value'])[0],
                 "title" => $title[0]['value'],
                 "thumbnail" => $thumbnail[0]['value'],
-                "date" => $tmp_date[1]." ".$tmp_date[2]." ".$tmp_date[3],
+                "date" => $tmp_date[1] . " " . $tmp_date[2] . " " . $tmp_date[3],
             );
         }
+        $this->render->json($result);
+    }
+
+    public function googleTranslate()
+    {
+        $post_data = $this->render->json_post();
+        $result = array();
+
+        if (isset($post_data['q'])) {
+            $q = rawurlencode($post_data['q']);
+
+            $from = 'id';
+            $to = 'en';
+
+            if (isset($post_data['from']) && isset($post_data['to'])) {
+                $from = $post_data['from'];
+                $to = $post_data['to'];
+            }
+
+            $this->crawl->set_url("https://translate.google.com/#$from/$to/$q", true);
+            $data = $this->crawl->get_data([], [[
+                "condition" => ["id", "=", "result_box"],
+            ]]);
+            if (count($data) > 0) {
+                $result['value'] = $data[0]['innerHTML'];
+            }
+        }
+
         $this->render->json($result);
     }
 }
