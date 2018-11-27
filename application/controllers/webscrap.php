@@ -173,4 +173,56 @@ class WebScrap extends Controller
 
         $this->render->json($result);
     }
+
+    public function googleImages()
+    {
+        $post_data = $this->render->json_post();
+        $result = array('data' => array());
+
+        if (isset($post_data['q'])) {
+            $q = $post_data['q'];
+            $size = '';
+            if(isset($post_data['size'])) {
+                $size = '&tbs=isz:'.$post_data['size'];
+            }
+            $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://www.google.com/search?q=$slug&tbm=isch&oq=$slug".$size, true);
+            $items = $this->crawl->get_data([], [[
+                "condition" => ["href", "~", "/imgres"],
+            ]]);
+
+            $result = array('data' => array());
+            foreach ($items as $row) {
+                $result['data'][] = array(
+                    'src' => $row['children'][1]['src'] ? $row['children'][1]['src'] : $row['children'][1]['data-src'],
+                    'link' => 'https://www.google.com'.$row['href'],
+                );
+            }
+        }
+        $this->render->json($result);
+    }
+
+    public function googleSearch() {
+        $result = array('data' => array());
+
+        // if (isset($_GET['q'])) {
+        //     $q = $_GET['q'];
+            // $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://www.google.com/search?q=scrape+google+search+results", true);
+            $items = $this->crawl->get_data([], [[
+                "condition" => ["title", "=", "h3"],
+            ],[
+                "condition" => ["depth", "=", 21],
+            ]]);
+
+            $result = array('data' => $items);
+            // foreach ($items as $row) {
+            //     $result['data'][] = array(
+            //         'src' => $row['children'][1]['src'] ? $row['children'][1]['src'] : $row['children'][1]['data-src'],
+            //         'link' => 'https://www.google.com'.$row['href'],
+            //     );
+            // }
+        // }
+        $this->render->json($result);
+    }
 }
