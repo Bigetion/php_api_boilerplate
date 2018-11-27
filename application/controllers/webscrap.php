@@ -182,11 +182,11 @@ class WebScrap extends Controller
         if (isset($post_data['q'])) {
             $q = $post_data['q'];
             $size = '';
-            if(isset($post_data['size'])) {
-                $size = '&tbs=isz:'.$post_data['size'];
+            if (isset($post_data['size'])) {
+                $size = '&tbs=isz:' . $post_data['size'];
             }
             $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
-            $this->crawl->set_url("https://www.google.com/search?q=$slug&tbm=isch&oq=$slug".$size, true);
+            $this->crawl->set_url("https://www.google.com/search?q=$slug&tbm=isch$size&oq=$slug", true);
             $items = $this->crawl->get_data([], [[
                 "condition" => ["href", "~", "/imgres"],
             ]]);
@@ -195,34 +195,40 @@ class WebScrap extends Controller
             foreach ($items as $row) {
                 $result['data'][] = array(
                     'src' => $row['children'][1]['src'] ? $row['children'][1]['src'] : $row['children'][1]['data-src'],
-                    'link' => 'https://www.google.com'.$row['href'],
+                    'link' => 'https://www.google.com' . $row['href'],
                 );
             }
         }
         $this->render->json($result);
     }
 
-    public function googleSearch() {
+    public function googleSearch()
+    {
         $result = array('data' => array());
 
-        // if (isset($_GET['q'])) {
-        //     $q = $_GET['q'];
-            // $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
-            $this->crawl->set_url("https://www.google.com/search?q=scrape+google+search+results", true);
-            $items = $this->crawl->get_data([], [[
-                "condition" => ["title", "=", "h3"],
-            ],[
-                "condition" => ["depth", "=", 21],
+        if (isset($_GET['q'])) {
+            $q = $_GET['q'];
+
+            $start = '';
+            if (isset($_GET['start'])) {
+                $start = '&start=' . $_GET['start'];
+            }
+
+            $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://www.google.com/search?q=$slug&safe=strict$start&oq=$slug", true);
+
+            $data['items'] = $this->crawl->get_data([], [[
+                "condition" => ["class", "=", "r"],
             ]]);
 
-            $result = array('data' => $items);
-            // foreach ($items as $row) {
-            //     $result['data'][] = array(
-            //         'src' => $row['children'][1]['src'] ? $row['children'][1]['src'] : $row['children'][1]['data-src'],
-            //         'link' => 'https://www.google.com'.$row['href'],
-            //     );
-            // }
-        // }
+            $result['data'] = array();
+            foreach ($data['items'] as $key => $row) {
+                $result['data'][] = array(
+                    'title' => $row['children'][0]['children'][0]['html'],
+                    'link' => $row['children'][0]['href'],
+                );
+            }
+        }
         $this->render->json($result);
     }
 }
