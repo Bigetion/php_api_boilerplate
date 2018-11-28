@@ -215,7 +215,7 @@ class WebScrap extends Controller
             }
 
             $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
-            $this->crawl->set_url("https://www.google.com/search?q=$slug&safe=strict$start&oq=$slug", true);
+            $this->crawl->set_url("https://www.google.com/search?q=$slug&safe=strict$start&oq=$slug&num=100", true);
 
             $data['items'] = $this->crawl->get_data([], [[
                 "condition" => ["class", "=", "r"],
