@@ -223,7 +223,7 @@ class WebScrap extends Controller
 
             $result['data'] = array();
             foreach ($data['items'] as $key => $row) {
-                if ($row['children'][0]['children'][0]['html'] && substr($row['children'][0]['href'], 0, 8) !== '/search?') {
+                if ($row['children'][0]['href'] && $row['children'][0]['children'][0]['html'] && substr($row['children'][0]['href'], 0, 8) !== '/search?') {
                     $result['data'][] = array(
                         'title' => $row['children'][0]['children'][0]['html'],
                         'link' => $row['children'][0]['href'],
