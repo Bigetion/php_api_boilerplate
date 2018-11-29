@@ -162,15 +162,15 @@ class WebScrap extends Controller
                 $to = $post_data['to'];
             }
 
-            $this->crawl->set_url("https://translate.google.com/#$from/$to/$q", true);
+            $this->crawl->set_url("https://translate.google.com/#view=home&op=translate&sl=$from&tl=$to&text=$q", true);
             $data = $this->crawl->get_data([], [[
-                "condition" => ["id", "=", "result_box"],
+                "condition" => ["class", "=", "tlid-translation translation"],
             ]]);
             if (count($data) > 0) {
                 $result['value'] = $data[0]['innerHTML'];
             }
         }
-
+        
         $this->render->json($result);
     }
 
