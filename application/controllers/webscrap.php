@@ -170,20 +170,19 @@ class WebScrap extends Controller
                 $result['value'] = $data[0]['innerHTML'];
             }
         }
-        
+
         $this->render->json($result);
     }
 
     public function googleImages()
     {
-        $post_data = $this->render->json_post();
         $result = array('data' => array());
 
-        if (isset($post_data['q'])) {
-            $q = $post_data['q'];
+        if (isset($_GET['q'])) {
+            $q = $_GET['q'];
             $size = '';
-            if (isset($post_data['size'])) {
-                $size = '&tbs=isz:' . $post_data['size'];
+            if (isset($_GET['size'])) {
+                $size = '&tbs=isz:' . $_GET['size'];
             }
             $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
             $this->crawl->set_url("https://www.google.com/search?q=$slug&tbm=isch$size&oq=$slug", true);
