@@ -1,0 +1,17 @@
+{
+  "store": "campaign",
+  "roles": {
+    "insert": [2],
+    "update": [2],
+    "delete": [2]
+  },
+  "fields": [{
+    "id": "name"
+  },{
+    "id": "from_date"
+  },{
+    "id": "to_date"
+  },{
+    "id": "reward_amount"
+  }]
+}

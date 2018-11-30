@@ -10,4 +10,12 @@ class App extends Controller
 
         $this->render->json($data);
     }
+    public function getUserInfo()
+    {
+        $data = array(
+            'idRole' => id_role,
+            'idUser' => id_user,
+        );
+        $this->render->json($data);
+    }
 }

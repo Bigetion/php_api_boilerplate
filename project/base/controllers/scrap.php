@@ -25,7 +25,7 @@ class Scrap extends Controller
         } else if (file_exists('project/base/config/scrap-service/' . $name . '.json')) {
             $json_data = json_decode(file_get_contents('project/base/config/scrap-service/' . $name . '.json'), true);
         }
-        $data = array();
+        $data = array('data' => array());
 
         if (!empty($json_data)) {
             if (isset($json_data['url']) && isset($json_data['query'])) {

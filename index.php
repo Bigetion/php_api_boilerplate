@@ -109,4 +109,7 @@ $CONFIG = &load_class('Project');
 session_start();
 ob_start();
 
+if (!defined('id_role')) define('id_role', 2);
+if (!defined('id_user')) define('id_user', 2);
+
 $CONFIG->set_project($project)->set_controller($controller)->set_method($method)->render();
