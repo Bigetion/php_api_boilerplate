@@ -232,4 +232,36 @@ class WebScrap extends Controller
         }
         $this->render->json($result);
     }
+
+    public function youtube()
+    {
+        $result = array('data' => array(), 'q' => '');
+        $url = 'https://ytinstant.com';
+        if (isset($_GET['q'])) {
+            $q = rawurlencode($_GET['q']);
+            $url = "https://ytinstant.com/#$q";
+        }
+        $this->crawl->set_url($url, true);
+
+        $data['q'] = $this->crawl->get_data([], [[
+            "condition" => ["id", "=", "searchTermKeyword"],
+        ]]);
+
+        $result['q'] = $data['q'][0]['html'];
+
+        $data['items'] = $this->crawl->get_data([], [[
+            "condition" => ["id", "=", "playlist"],
+        ]]);
+
+        foreach ($data['items'][0]['children'] as $key => $row) {
+            $result['data'][] = array(
+                'title' => $row['children'][1]['html'],
+                'thumbnail' => $row['children'][0]['src'],
+                'id' => explode("/", str_replace("https://i.ytimg.com/vi/", "", $row['children'][0]['src']))[0],
+                'link' => "https://www.youtube.com/v/" . explode("/", str_replace("https://i.ytimg.com/vi/", "", $row['children'][0]['src']))[0] . "?fs=1&hl=en_US",
+            );
+        }
+
+        $this->render->json($result);
+    }
 }
