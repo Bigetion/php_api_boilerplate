@@ -146,14 +146,28 @@ class WebScrap extends Controller
         $this->render->json($result);
     }
 
+    private function getTranslateValue($q, $from, $to)
+    {
+        $q = rawurlencode(str_replace(array("%"), "", $q));
+        $value = '';
+
+        $this->crawl->set_url("https://translate.google.com/#view=home&op=translate&sl=$from&tl=$to&text=$q", true);
+        $data = $this->crawl->get_data([], [[
+            "condition" => ["class", "=", "tlid-translation translation"],
+        ]]);
+        if (count($data) > 0) {
+            $value = $data[0]['innerHTML'];
+        }
+        return $value;
+    }
+
     public function googleTranslate()
     {
         $post_data = $this->render->json_post();
         $result = array();
-
         if (isset($post_data['q'])) {
-            $q = rawurlencode($post_data['q']);
-
+            $q = $post_data['q'];
+            
             $from = 'id';
             $to = 'en';
 
@@ -162,13 +176,21 @@ class WebScrap extends Controller
                 $to = $post_data['to'];
             }
 
-            $this->crawl->set_url("https://translate.google.com/#view=home&op=translate&sl=$from&tl=$to&text=$q", true);
-            $data = $this->crawl->get_data([], [[
-                "condition" => ["class", "=", "tlid-translation translation"],
-            ]]);
-            if (count($data) > 0) {
-                $result['value'] = $data[0]['innerHTML'];
+            $length = strlen($q);
+            $size = 3500;
+            $numChunks = ceil($length / $size);
+            $chunks = array();
+
+            $o = 0;
+            for ($i = 0; $i < $numChunks; $i++) {
+                $chunks[$i] = substr($q, $o, $size);
+                $o += $size;
             }
+            $value = '';
+            foreach ($chunks as $chunk) {
+                $value .= $this->getTranslateValue($chunk, $from, $to);
+            }
+            $result['value'] = $value;
         }
 
         $this->render->json($result);
