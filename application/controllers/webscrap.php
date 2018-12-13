@@ -264,4 +264,19 @@ class WebScrap extends Controller
 
         $this->render->json($result);
     }
+
+    public function youtubeMP3()
+    {
+        $result = array('file' => '');
+
+        if (isset($_GET['id'])) {
+            $id = $_GET['id'];
+            $this->crawl->set_url("http://michaelbelgium.me/ytconverter/convert.php?youtubelink=https://www.youtube.com/watch?v=$id");
+            $p = $this->crawl->get_data([], [[
+                "condition" => ["tag", "=", "p"],
+            ]]);
+            $result = json_decode($p[0]['innerHTML']);
+        }
+        $this->render->json($result);
+    }
 }
