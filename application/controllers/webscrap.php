@@ -2,6 +2,22 @@
 
 class WebScrap extends Controller
 {
+    public function fromAPI() 
+    {
+        $post_data = $this->render->json_post();
+        $result = array();
+
+        if (isset($post_data['url'])) {
+            $url = $post_data['url'];
+            $this->crawl->set_url($url);
+            $p = $this->crawl->get_data([], [[
+                "condition" => ["tag", "=", "p"],
+            ]]);
+            $result = json_decode($p[0]['innerHTML']);
+        }
+        $this->render->json($result);
+    }
+
     public function googleTrends()
     {
         $this->crawl->set_document_type('xml')->set_url("https://trends.google.com/trends/trendingsearches/daily/rss?geo=ID");
