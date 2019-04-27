@@ -2,7 +2,7 @@
 
 class WebScrap extends Controller
 {
-    public function fromAPI() 
+    public function fromAPI()
     {
         $post_data = $this->render->json_post();
         $result = array();
@@ -293,6 +293,147 @@ class WebScrap extends Controller
             ]]);
             $result = json_decode($p[0]['innerHTML']);
         }
+        $this->render->json($result);
+    }
+
+    public function bukalapak()
+    {
+        $result['data'] = array();
+        $result['total_pages'] = 0;
+
+        if (isset($_GET['q'])) {
+            $q = $_GET['q'];
+
+            $page = 1;
+            if (isset($_GET['page'])) {
+                $page = $_GET['page'];
+            }
+
+            $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://www.bukalapak.com/products/s?from=omnisearch&page=$page&search%5Bhashtag%5D=&search%5Bkeywords%5D=$slug&search_source=omnisearch_organic&source=navbar&utf8=%E2%9C%93");
+
+            $level = $this->crawl->get_data([], [[
+                "condition" => ["class", "=", "basic-products basic-products--grid"],
+            ]]);
+
+            $level = $level[0]['level'];
+
+            $products = $this->crawl->get_data(["data-name", "data-url"], [[
+                "condition" => ["level", "startswith", $level . "_1_"],
+            ], [
+                "condition" => ["level", "endswith", "_1_1"],
+            ], [
+                "condition" => ["tag", "=", "article"],
+            ]]);
+
+            $images = $this->crawl->get_data([], [[
+                "condition" => ["level", "startswith", $level . "_"],
+            ], [
+                "condition" => ["tag", "=", "img"],
+            ]]);
+
+            $prices = $this->crawl->get_data([], [[
+                "condition" => ["level", "startswith", $level . "_"],
+            ], [
+                "condition" => ["class", "=", "product-price"],
+            ]]);
+
+            $total_pages = $this->crawl->get_data([], [[
+                "condition" => ["class", "=", "last-page"],
+            ]]);
+
+            foreach ($products as $key => $row) {
+                $result['data'][] = array(
+                    "title" => $row['data-name'],
+                    "url" => "https://bukalapak.com" . $row['data-url'],
+                    "image" => $images[$key]['data-src'],
+                    "price" => $prices[$key]['data-reduced-price'],
+                );
+            }
+            $result['total_pages'] = (int) $total_pages[0]['html'];
+        }
+
+        $this->render->json($result);
+    }
+
+    public function shopee()
+    {
+        $result['data'] = array();
+        $result['total_pages'] = 100;
+
+        if (isset($_GET['q'])) {
+            $q = $_GET['q'];
+
+            $page = 1;
+            $newest = 0;
+            if (isset($_GET['page'])) {
+                $page = $_GET['page'];
+            }
+
+            $page = $page - 1;
+
+            $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://shopee.co.id/search?keyword=$q&page=$page&sortBy=relevancy", true);
+            $body = $this->crawl->get_data([], [[
+                "condition" => ["type", "=", "application/ld+json"],
+            ], [
+                "condition" => ["level", "!=", "0_0_10"],
+            ]]);
+            foreach ($body as $row) {
+                $innerJSON = json_decode($row['innerHTML'], true);
+                $price = 0;
+                if (isset($innerJSON['offers']['price'])) {
+                    $price = $innerJSON['offers']['price'];
+                } else if (isset($innerJSON['offers']['lowPrice'])) {
+                    $price = $innerJSON['offers']['lowPrice'];
+                }
+                $result['data'][] = array(
+                    "title" => $innerJSON['name'],
+                    "url" => $innerJSON['url'],
+                    "image" => $innerJSON['image'],
+                    "price" => (int) $price,
+                );
+            }
+
+        }
+        $this->render->json($result);
+    }
+
+    public function tokopedia()
+    {
+        $result['data'] = array();
+        $result['total_pages'] = 0;
+
+        if (isset($_GET['q'])) {
+            $q = $_GET['q'];
+
+            $offset = 50;
+            $page = 1;
+            $start = 0;
+            if (isset($_GET['page'])) {
+                $page = $_GET['page'];
+            }
+            $start = ($page - 1) * $offset;
+
+            $slug = strtolower(trim(preg_replace('/[\s-]+/', '+', preg_replace('/[^A-Za-z0-9-]+/', '+', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $q))))), '+'));
+            $this->crawl->set_url("https://ace.tokopedia.com/search/product/v3?scheme=https&device=desktop&related=true&catalog_rows=5&source=search&ob=23&st=product&rows=$offset&start=$start&q=$slug&safe_search=false");
+            $body = $this->crawl->get_data([], [[
+                "condition" => ["tag", "=", "p"],
+            ]]);
+            $response = json_decode($body[0]['innerHTML'], true);
+            $products = $response['data']['products'];
+            $result['data'] = array();
+            foreach ($products as $row) {
+                $result['data'][] = array(
+                    "title" => $row['name'],
+                    "url" => $row['url'],
+                    "image" => $row['image_url'],
+                    "price" => $row['price_int'],
+                );
+            }
+            $result['total_pages'] = ceil($response['header']['total_data'] / $offset);
+        }
+
         $this->render->json($result);
     }
 }

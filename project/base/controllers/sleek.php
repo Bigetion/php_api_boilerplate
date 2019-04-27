@@ -46,6 +46,25 @@ class sleek extends Controller
                             $tmpData = $this->sleekdb->select($store, $keys, $where);
                         };
                     }
+
+                    if (isset($q['join'])) {
+                        foreach ($q['join'] as $jKey => $join) {
+                            $fieldName = $join[0];
+                            $joinObj = $join[1];
+
+                            $joinStore = $joinObj['store'];
+                            $joinKeys = $joinObj['keys'];
+
+                            foreach ($tmpData as $tKey => $row) {
+                                $conditionVal = [$joinObj['condition'][0], $joinObj['condition'][1], $row[$jKey]];
+                                $joinWhere = [["condition" => $conditionVal]];
+                                $joinData = $this->sleekdb->select($joinStore, $joinKeys, $joinWhere);
+                                $tmpData[$tKey][$fieldName] = $joinData;
+                            }
+                            print_r($tmpData);
+                        }
+                    }
+
                     $data['data'][] = array("rows" => $tmpData, "total" => $tmpTotalRows);
                 }
             }
