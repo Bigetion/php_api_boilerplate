@@ -2,8 +2,6 @@
     exit('No direct script access allowed');
 }
 
-require_once 'gump.php';
-
 class Project
 {
     public $project = '';

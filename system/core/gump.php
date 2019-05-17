@@ -2,8 +2,6 @@
     exit('No direct script access allowed');
 }
 
-require_once 'set.php';
-
 class GUMP
 {
     // Singleton instance of GUMP
