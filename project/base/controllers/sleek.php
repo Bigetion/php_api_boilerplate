@@ -14,7 +14,7 @@ class sleek extends Controller
         } else if (file_exists('project/base/config/sleek-query/' . $name . '.json')) {
             $json_data = json_decode(file_get_contents('project/base/config/sleek-query/' . $name . '.json'), true);
         }
-        $data = array('data' => array());
+        $data = array();
 
         if (!empty($json_data)) {
             if (isset($json_data['query'])) {
@@ -32,9 +32,9 @@ class sleek extends Controller
                             $options = $post_data['options'][$key];
                             if (isset($options['where'])) {
                                 $where = $options['where'];
+                                $tmpData = $this->sleekdb->select_from_array($tmpData, $where);
+                                $tmpTotalRows = count($tmpData);
                             }
-                            $tmpData = $this->sleekdb->select($store, $keys, $where);
-                            $tmpTotalRows = $this->sleekdb->totalRows();
                             if (isset($options['limit'])) {
                                 $limit = $options['limit'];
                                 $where[] = ["limit" => $limit];
@@ -43,25 +43,19 @@ class sleek extends Controller
                                 $sortBy = $options['sortBy'];
                                 $where[] = ["sortBy" => $sortBy];
                             }
-                            $tmpData = $this->sleekdb->select($store, $keys, $where);
+                            $tmpData = $this->sleekdb->select_from_array($tmpData, $where);
                         };
                     }
 
                     if (isset($q['join'])) {
                         foreach ($q['join'] as $jKey => $join) {
-                            $fieldName = $join[0];
-                            $joinObj = $join[1];
+                            $joinKey = $join[0];
+                            $joinCondition = $join[1];
+                            $joinVal = $join[2];
 
-                            $joinStore = $joinObj['store'];
-                            $joinKeys = $joinObj['keys'];
-
-                            foreach ($tmpData as $tKey => $row) {
-                                $conditionVal = [$joinObj['condition'][0], $joinObj['condition'][1], $row[$jKey]];
-                                $joinWhere = [["condition" => $conditionVal]];
-                                $joinData = $this->sleekdb->select($joinStore, $joinKeys, $joinWhere);
-                                $tmpData[$tKey][$fieldName] = $joinData;
+                            foreach ($tmpData as $tmpDataKey => $tmpDataRow) {
+                                $tmpData[$tmpDataKey][$jKey.'_joindata'] = $this->sleekdb->select($jKey, [], [["condition" => [$joinVal, $joinCondition, $tmpDataRow[$joinKey]]]]);
                             }
-                            print_r($tmpData);
                         }
                     }
 
@@ -114,14 +108,66 @@ class sleek extends Controller
                     if ($array_keys[0] === 0) {
                         foreach ($array_keys as $key) {
                             $input_data = getInputData($post_data['data'][$key], $json_data['fields'], $type);
-                            $this->sleekdb->insert($store, $input_data);
+
+                            $hash = md5(json_encode($input_data));
+                            $tmpData = $this->sleekdb->select($store, [], [[
+                                "condition" => ["_hash", "=", $hash],
+                            ]]);
+                            $condition = [];
+
+                            if (isset($json_data['uniq_id'])) {
+                                $uniq_id = $json_data['uniq_id'];
+                                foreach ($uniq_id as $id) {
+                                    if (isset($input_data[$id])) {
+                                        $condition[] = [
+                                            "condition" => [$id, "=", $input_data[$id]],
+                                            "next" => "or",
+                                        ];
+                                    }
+                                }
+                                $tmpData2 = $this->sleekdb->select($store, [], $condition);
+                                if (count($tmpData) === 0) {
+                                    if (count($tmpData2) === 0) {
+                                        $this->sleekdb->insert($store, $input_data);
+                                    }
+                                }
+                            } else {
+                                if (count($tmpData) === 0) {
+                                    $this->sleekdb->insert($store, $input_data);
+                                }
+                            }
                         }
                         $this->set->success_message(true);
                     } else {
                         $input_data = getInputData($post_data['data'], $json_data['fields'], $type);
-                        if ($this->sleekdb->insert($store, $input_data)) {
-                            $this->set->success_message(true);
+
+                        $hash = md5(json_encode($input_data));
+                        $tmpData = $this->sleekdb->select($store, [], [[
+                            "condition" => ["_hash", "=", $hash],
+                        ]]);
+                        $condition = [];
+                        if (isset($json_data['uniq_id'])) {
+                            $uniq_id = $json_data['uniq_id'];
+                            foreach ($uniq_id as $id) {
+                                if (isset($input_data[$id])) {
+                                    $condition[] = [
+                                        "condition" => [$id, "=", $input_data[$id]],
+                                        "next" => "or",
+                                    ];
+                                }
+                            }
+                            $tmpData2 = $this->sleekdb->select($store, [], $condition);
+                            if (count($tmpData) === 0) {
+                                if (count($tmpData2) === 0) {
+                                    $this->sleekdb->insert($store, $input_data);
+                                }
+                            }
+                        } else {
+                            if (count($tmpData) === 0) {
+                                $this->sleekdb->insert($store, $input_data);
+                            }
                         }
+                        $this->set->success_message(true);
                     }
                 }
             }
