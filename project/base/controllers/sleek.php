@@ -2,7 +2,7 @@
     exit('No direct script access allowed');
 }
 
-class sleek extends Controller
+class sleek extends Main
 {
     public function getData()
     {

@@ -2,7 +2,7 @@
     exit('No direct script access allowed');
 }
 
-class Home extends Controller
+class Home extends Main
 {
 
     public function index()

@@ -1,6 +1,6 @@
 <?php
 
-class JsonQuery extends Controller
+class JsonQuery extends Main
 {
     public function index()
     {

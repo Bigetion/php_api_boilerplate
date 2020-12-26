@@ -2,7 +2,7 @@
     exit('No direct script access allowed');
 }
 
-class App extends Controller
+class App extends Main
 {
     public function getHeadersInfo()
     {

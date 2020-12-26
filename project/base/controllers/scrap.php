@@ -2,7 +2,7 @@
     exit('No direct script access allowed');
 }
 
-class Scrap extends Controller
+class Scrap extends Main
 {
 
     public function index()

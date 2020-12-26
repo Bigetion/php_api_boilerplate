@@ -2,7 +2,7 @@
     exit('No direct script access allowed');
 }
 
-class Controller
+class Main
 {
     public $c = array();
 
@@ -20,6 +20,6 @@ class Controller
 
 function &get_instance()
 {
-    $a = new Controller;
+    $a = new Main;
     return $a;
 }

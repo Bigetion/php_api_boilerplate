@@ -1,6 +1,6 @@
 <?php
 
-class WebScrap extends Controller
+class WebScrap extends Main
 {
     public function fromAPI()
     {
